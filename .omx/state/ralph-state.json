@@ -1,0 +1,64 @@
+{
+  "active": true,
+  "current_phase": "executing",
+  "iteration": 3,
+  "max_iterations": 10,
+  "started_at": "2026-10-29T00:00:00+03:00",
+  "task_description": "Implement Roamly according to the approved implementation plan.",
+  "context_snapshot_path": ".omx/context/roamly-implementation-plan-20261029T000000Z.md",
+  "implementation_plan": ".omx/plans/roamly-implementation-plan.md",
+  "prd": ".omx/plans/prd-roamly.md",
+  "test_spec": ".omx/plans/test-spec-roamly.md",
+  "phase": "foundation-complete-awaiting-integrations",
+  "todo": [
+    {
+      "id": "foundation",
+      "status": "complete"
+    },
+    {
+      "id": "backend",
+      "status": "in_progress"
+    },
+    {
+      "id": "mobile",
+      "status": "in_progress"
+    },
+    {
+      "id": "integration",
+      "status": "blocked_on_credentials"
+    },
+    {
+      "id": "verification",
+      "status": "in_progress"
+    }
+  ],
+  "notes": [
+    "Ralph PRD/test-spec gate satisfied.",
+    "Agent tier doc not present in repository or installed skill roots; using current workspace agent capability table.",
+    "Native role agents previously unavailable under current ChatGPT-account model configuration."
+  ],
+  "last_turn_at": "2026-10-29T14:05:29.224Z",
+  "completed_work": [
+    "NativeWind 4.2.7 and Tailwind configuration",
+    "Expo Router native tabs shell with Trips/Plan/Profile routes",
+    "Trips and itinerary timeline fixture screens, visually reviewed at 93/100",
+    "Shared contracts and Node/Fastify/Prisma foundation",
+    "Prisma schema validation and Fastify health smoke test",
+    "Root/mobile, contract, and server typechecks; lint; Expo Doctor 21/21"
+  ],
+  "visual_progress_path": ".omx/state/roamly/ralph-progress.json",
+  "blockers": [
+    "Supabase project URL/JWT/service-role key",
+    "Mapbox access token",
+    "AI provider key and final current structured-output model",
+    "POI provider selection/credentials plus explicit storage/attribution approval",
+    "Real PostgreSQL/Supabase database URL for Prisma migration"
+  ],
+  "next_actions": [
+    "Implement Supabase JWT/RLS integration once credentials are supplied",
+    "Implement POI/Mapbox/AI adapters with permitted data fields",
+    "Replace fixture trip UI with typed API reads/mutations",
+    "Generate first Prisma migration against authorized database",
+    "Run physical iOS/Android development-build verification"
+  ]
+}

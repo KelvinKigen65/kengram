@@ -1,0 +1,105 @@
+{
+  "active": false,
+  "current_phase": "complete",
+  "started_at": "2026-10-29T00:00:00+03:00",
+  "task_description": "Interview the user to clarify a new software project before producing an implementation plan or code.",
+  "interview_id": "kengram-20261029",
+  "profile": "standard",
+  "type": "brownfield",
+  "initial_idea": "Roamly: premium AI itinerary planner for shared leisure trips.",
+  "rounds": [
+    {
+      "round": 1,
+      "source": "Attached product and UI brief",
+      "summary": "Roamly supports destination discovery, AI itinerary generation, trip organization, saved places, budgets, collaboration, and memories. It specifies a polished mobile visual system and a broad screen inventory, but not target users, MVP boundaries, integrations, or success criteria."
+    },
+    {
+      "round": 2,
+      "source": "User answers",
+      "summary": "V1 serves couples/groups planning short leisure trips. Its differentiated promise is realistic, high-vibe itineraries with intelligent pacing. The MVP centers on AI generation, drag-and-drop itinerary editing, and a daily route viewer; live booking/prices, social, concurrent editing, expenses, and memories are deferred. Native iOS/Android only; web sharing is read-only."
+    },
+    {
+      "round": 3,
+      "source": "User answers",
+      "summary": "Creation begins with a structured form plus optional special requests. Partners can asynchronously vote, comment, and suggest places but the creator owns the itinerary. Realism depends on geographic clustering, travel time, pacing/buffers, hours, and reservation warnings."
+    },
+    {
+      "round": 4,
+      "source": "User answers",
+      "summary": "Public secret links are view-only; feedback actions require a signed-in invitee. Apple, Google, and email magic-link auth are supported. Finalization locks new feedback, generates PDF/image and ICS assets, and enters active-trip mode. The owner can reopen; prior feedback persists or is archived when its stop is removed."
+    },
+    {
+      "round": 5,
+      "source": "User answers plus primary-doc check",
+      "summary": "V1 is English-only across 20 tourist cities, supports six currency display preferences, uses offline trip briefs/static maps, and has affiliate-link tracking. The initially selected Google Places + Mapbox design conflicts with Google Places map-display and storage policies."
+    },
+    {
+      "round": 6,
+      "source": "User answers plus provider validation",
+      "summary": "Mapbox-first, Supabase Auth, a $100–500 monthly ceiling, and partial-itinerary recovery are selected. Provider validation shows Mapbox POI storage and preview limits, Foursquare standard retention restrictions, and open-data gaps for live venue details; the product must now decide how strongly it promises opening hours/reservation data."
+    },
+    {
+      "round": 7,
+      "source": "User answers",
+      "summary": "Venue facts are best effort with freshness labels and external verification links. Location is opt-in in active-trip mode with no background tracking. Public links are privacy-filtered. Account deletion hard-deletes personal/sole-owned data and transfers active collaborative trip ownership to the oldest active collaborator."
+    },
+    {
+      "round": 8,
+      "source": "User constraint plus docs check",
+      "summary": "UI must use native tabs and NativeWind. Expo SDK 57's native tabs API imports from expo-router/unstable-native-tabs. NativeWind v4.2.7 has documented SDK 57 support; v5 remains release-candidate scope."
+    },
+    {
+      "round": 9,
+      "source": "User answers",
+      "summary": "Standalone discovery is the first scope cut and nearby suggestions second; exports/offline briefs are protected. Success gates cover <=30s p90 generation, day pacing, 80% collaborative completion, and zero P0/P1 core-flow defects. Launch is an internal TestFlight/Play pilot for 100–250 users / 30–50 groups, then public listing."
+    }
+  ],
+  "current_ambiguity": 0.05,
+  "threshold": 0.2,
+  "max_rounds": 12,
+  "challenge_modes_used": [
+    "contrarian",
+    "simplifier"
+  ],
+  "codebase_context": "Existing Expo 57 starter: Expo Router routes in src/app, single starter index screen; no project-specific behavior found.",
+  "current_stage": "feasibility",
+  "current_focus": "release-dates-and-navigation",
+  "context_snapshot_path": ".omx/context/new-software-project-20261029T000000Z.md",
+  "iteration": 9,
+  "last_turn_at": "2026-10-29T12:18:38.645Z",
+  "clarity": {
+    "intent": 0.9,
+    "outcome": 0.92,
+    "scope": 0.92,
+    "constraints": 0.89,
+    "success": 0.85,
+    "context": 0.85
+  },
+  "readiness_gates": {
+    "non_goals": true,
+    "decision_boundaries": true,
+    "pressure_pass": true
+  },
+  "pressure_pass": {
+    "topic": "Share-link permission model",
+    "finding": "Read-only access conflicts with partner actions that write votes, comments, and suggestions."
+  },
+  "decision_boundaries": {
+    "delegated": "Select implementation details among declared stack choices, including backend/auth provider, database, AI model, analytics, monitoring, and Mapbox-first data integrations within budget. Use Expo Router native tabs and NativeWind.",
+    "requires_user": "Any material cost, data-rights, or compliance issue."
+  },
+  "open_blocker": "Launch priority and testable success criteria",
+  "open_questions": [
+    "pilot and public-release date",
+    "whether the four-stop cap has a minimum",
+    "top-level native-tab arrangement"
+  ],
+  "completed_at": "2026-10-29T00:00:00+03:00",
+  "final_ambiguity": 0.05,
+  "artifacts": {
+    "context_snapshot": ".omx/context/new-software-project-20261029T000000Z.md",
+    "spec": ".omx/specs/deep-interview-roamly.md",
+    "transcript": ".omx/interviews/roamly-20261029T000000Z.md"
+  },
+  "result": "Interview complete; spec crystallized. No implementation plan or code has been produced."
+}

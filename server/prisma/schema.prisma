@@ -1,0 +1,496 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CurrencyCode {
+  USD
+  EUR
+  GBP
+  JPY
+  AUD
+  CAD
+}
+
+enum TripStatus {
+  DRAFT
+  GENERATING
+  COLLABORATIVE
+  CONFIRMED
+  REOPENED
+  ARCHIVED
+}
+
+enum TripMemberRole {
+  OWNER
+  COLLABORATOR
+}
+
+enum TripMemberStatus {
+  INVITED
+  ACTIVE
+  REMOVED
+}
+
+enum BudgetTier {
+  BUDGET
+  MODERATE
+  PREMIUM
+  LUXURY
+}
+
+enum TripVibe {
+  RELAXED
+  FOODIE
+  CULTURE
+  ADVENTURE
+  NIGHTLIFE
+  FAMILY
+  MIXED
+}
+
+enum PlaceDataSource {
+  OVERTURE
+  FOURSQUARE
+  MANUAL
+  OWNER
+}
+
+enum PlaceCategory {
+  ATTRACTION
+  CAFE
+  RESTAURANT
+  BAR
+  MUSEUM
+  PARK
+  SHOPPING
+  LODGING
+  TRANSPORT
+  OTHER
+}
+
+enum CoordinateConfidence {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum ItineraryVersionStatus {
+  DRAFT
+  ACTIVE
+  SUPERSEDED
+  ARCHIVED
+}
+
+enum ActivityKind {
+  CORE
+  BUFFER
+  TRAVEL
+  FREE_TIME
+}
+
+enum ActivityStatus {
+  SCHEDULED
+  WARNING
+  REMOVED
+}
+
+enum SuggestionStatus {
+  OPEN
+  ACCEPTED
+  DISMISSED
+  ARCHIVED
+}
+
+enum VoteValue {
+  UP
+  DOWN
+}
+
+enum ArtifactKind {
+  DAILY_BRIEF_PDF
+  TRIP_SUMMARY_IMAGE
+  CALENDAR_ICS
+  STATIC_MAP_IMAGE
+}
+
+enum JobType {
+  GENERATE_ITINERARY
+  RENDER_ARTIFACTS
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  RETRYABLE_FAILURE
+  FAILED
+  CANCELLED
+}
+
+model UserProfile {
+  /// Matches the Supabase Auth user UUID. Auth credentials remain outside Prisma.
+  id              String       @id @db.Uuid
+  displayName     String?      @db.VarChar(120)
+  avatarUrl       String?      @db.Text
+  defaultCurrency CurrencyCode @default(USD)
+  createdAt       DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime     @updatedAt @db.Timestamptz(6)
+
+  ownedTrips              Trip[]              @relation("TripOwner")
+  memberships             TripMember[]
+  itineraryVersions       ItineraryVersion[]  @relation("VersionCreator")
+  auditEvents             AuditEvent[]
+  affiliateClicks         AffiliateClick[]
+  commandReceipts         CommandReceipt[]
+
+  @@map("user_profiles")
+}
+
+model Trip {
+  id                 String       @id @default(uuid()) @db.Uuid
+  ownerId            String       @db.Uuid
+  title              String       @db.VarChar(160)
+  destinationName    String       @db.VarChar(160)
+  destinationPlaceId String?      @db.Uuid
+  timezone           String       @db.VarChar(80)
+  startsOn           DateTime     @db.Date
+  endsOn             DateTime     @db.Date
+  currency           CurrencyCode
+  budgetTier         BudgetTier
+  vibe               TripVibe
+  specialRequests    String?      @db.VarChar(1000)
+  status             TripStatus   @default(DRAFT)
+  currentVersionId   String?      @unique @db.Uuid
+  createdAt          DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime     @updatedAt @db.Timestamptz(6)
+  archivedAt         DateTime?    @db.Timestamptz(6)
+
+  owner            UserProfile       @relation("TripOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  destinationPlace PlaceSnapshot?    @relation("TripDestination", fields: [destinationPlaceId], references: [id], onDelete: SetNull)
+  memberships      TripMember[]
+  itineraryVersions ItineraryVersion[] @relation("TripVersions")
+  currentVersion   ItineraryVersion?  @relation("CurrentTripVersion", fields: [currentVersionId], references: [id], onDelete: SetNull)
+  suggestions      Suggestion[]
+  comments         Comment[]
+  shareLinks       ShareLink[]
+  artifacts        Artifact[]
+  jobs             Job[]
+  auditEvents      AuditEvent[]
+  affiliateClicks  AffiliateClick[]
+  commandReceipts  CommandReceipt[]
+
+  @@index([ownerId, status, startsOn])
+  @@index([status, startsOn])
+  @@map("trips")
+}
+
+model TripMember {
+  id        String           @id @default(uuid()) @db.Uuid
+  tripId    String           @db.Uuid
+  userId    String           @db.Uuid
+  role      TripMemberRole
+  status    TripMemberStatus @default(INVITED)
+  invitedAt DateTime         @default(now()) @db.Timestamptz(6)
+  joinedAt  DateTime?        @db.Timestamptz(6)
+  createdAt DateTime         @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime         @updatedAt @db.Timestamptz(6)
+
+  trip        Trip         @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  user        UserProfile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  suggestions Suggestion[]
+  votes       Vote[]
+  comments    Comment[]
+
+  @@unique([tripId, userId])
+  @@index([userId, status])
+  @@index([tripId, status])
+  @@map("trip_members")
+}
+
+model PlaceSnapshot {
+  id                   String               @id @default(uuid()) @db.Uuid
+  source               PlaceDataSource
+  sourcePlaceId        String?              @db.VarChar(255)
+  displayName          String               @db.VarChar(255)
+  category             PlaceCategory
+  latitude             Float
+  longitude            Float
+  address              String?              @db.Text
+  phoneNumber          String?              @db.VarChar(64)
+  websiteUrl           String?              @db.Text
+  attribution          String?              @db.Text
+  fetchedAt            DateTime             @db.Timestamptz(6)
+  freshnessNote        String?              @db.Text
+  coordinateConfidence CoordinateConfidence @default(MEDIUM)
+  createdAt            DateTime             @default(now()) @db.Timestamptz(6)
+  updatedAt            DateTime             @updatedAt @db.Timestamptz(6)
+
+  destinationForTrips Trip[]      @relation("TripDestination")
+  activities          Activity[]
+  suggestions         Suggestion[]
+
+  @@unique([source, sourcePlaceId])
+  @@index([category, latitude, longitude])
+  @@map("place_snapshots")
+}
+
+model ItineraryVersion {
+  id            String                 @id @default(uuid()) @db.Uuid
+  tripId        String                 @db.Uuid
+  versionNumber Int
+  status        ItineraryVersionStatus @default(DRAFT)
+  isPartial     Boolean                @default(false)
+  createdByUserId String?              @db.Uuid
+  createdAt     DateTime               @default(now()) @db.Timestamptz(6)
+  activatedAt   DateTime?              @db.Timestamptz(6)
+  supersededAt  DateTime?              @db.Timestamptz(6)
+
+  trip             Trip          @relation("TripVersions", fields: [tripId], references: [id], onDelete: Cascade)
+  currentForTrip   Trip?         @relation("CurrentTripVersion")
+  createdBy        UserProfile?  @relation("VersionCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  days             ItineraryDay[]
+  artifacts        Artifact[]
+  jobs             Job[]
+
+  @@unique([tripId, versionNumber])
+  @@index([tripId, status])
+  @@map("itinerary_versions")
+}
+
+model ItineraryDay {
+  id            String           @id @default(uuid()) @db.Uuid
+  versionId     String           @db.Uuid
+  dayNumber     Int
+  localDate     DateTime         @db.Date
+  title         String?          @db.VarChar(160)
+  warnings      Json             @default("[]")
+  createdAt     DateTime         @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime         @updatedAt @db.Timestamptz(6)
+
+  version       ItineraryVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  activities    Activity[]
+  comments      Comment[]
+
+  @@unique([versionId, dayNumber])
+  @@index([versionId, localDate])
+  @@map("itinerary_days")
+}
+
+model Activity {
+  id                       String         @id @default(uuid()) @db.Uuid
+  dayId                    String         @db.Uuid
+  placeId                  String?        @db.Uuid
+  position                 Int
+  kind                     ActivityKind   @default(CORE)
+  status                   ActivityStatus @default(SCHEDULED)
+  title                    String         @db.VarChar(255)
+  startsAt                 DateTime?      @db.Timestamptz(6)
+  endsAt                   DateTime?      @db.Timestamptz(6)
+  estimatedCostAmount      Decimal?       @db.Decimal(12, 2)
+  estimatedCostCurrency    CurrencyCode?
+  reservationNote          String?        @db.Text
+  travelMinutesFromPrevious Int?
+  bufferMinutesAfter       Int            @default(0)
+  warnings                 Json           @default("[]")
+  replacedAt               DateTime?      @db.Timestamptz(6)
+  createdAt                DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt                DateTime       @updatedAt @db.Timestamptz(6)
+
+  day         ItineraryDay  @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  place       PlaceSnapshot? @relation(fields: [placeId], references: [id], onDelete: SetNull)
+  votes       Vote[]
+  comments    Comment[]
+
+  @@unique([dayId, position])
+  @@index([placeId])
+  @@map("activities")
+}
+
+model Suggestion {
+  id                  String           @id @default(uuid()) @db.Uuid
+  tripId              String           @db.Uuid
+  submittedByMemberId String           @db.Uuid
+  placeId             String           @db.Uuid
+  note                String?          @db.VarChar(1000)
+  status              SuggestionStatus @default(OPEN)
+  archivedAt          DateTime?        @db.Timestamptz(6)
+  createdAt           DateTime         @default(now()) @db.Timestamptz(6)
+  updatedAt           DateTime         @updatedAt @db.Timestamptz(6)
+
+  trip              Trip          @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  submittedByMember TripMember    @relation(fields: [submittedByMemberId], references: [id], onDelete: Cascade)
+  place             PlaceSnapshot @relation(fields: [placeId], references: [id], onDelete: Restrict)
+  votes             Vote[]
+
+  @@index([tripId, status])
+  @@map("suggestions")
+}
+
+model Vote {
+  id           String      @id @default(uuid()) @db.Uuid
+  memberId     String      @db.Uuid
+  activityId   String?     @db.Uuid
+  suggestionId String?     @db.Uuid
+  value        VoteValue
+  createdAt    DateTime    @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime    @updatedAt @db.Timestamptz(6)
+
+  member       TripMember  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  activity     Activity?   @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  suggestion   Suggestion? @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, activityId])
+  @@unique([memberId, suggestionId])
+  @@index([activityId])
+  @@index([suggestionId])
+  @@map("votes")
+}
+
+model Comment {
+  id         String      @id @default(uuid()) @db.Uuid
+  tripId     String      @db.Uuid
+  memberId   String      @db.Uuid
+  activityId String?     @db.Uuid
+  dayId      String?     @db.Uuid
+  body       String      @db.VarChar(2000)
+  createdAt  DateTime    @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime    @updatedAt @db.Timestamptz(6)
+  archivedAt DateTime?   @db.Timestamptz(6)
+
+  trip       Trip        @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  member     TripMember  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  activity   Activity?   @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  day        ItineraryDay? @relation(fields: [dayId], references: [id], onDelete: Cascade)
+
+  @@index([tripId, createdAt])
+  @@index([activityId, createdAt])
+  @@index([dayId, createdAt])
+  @@map("comments")
+}
+
+model ShareLink {
+  id             String    @id @default(uuid()) @db.Uuid
+  tripId         String    @db.Uuid
+  tokenHash      String    @unique @db.Char(64)
+  hideExactDates Boolean   @default(false)
+  isActive       Boolean   @default(true)
+  expiresAt      DateTime? @db.Timestamptz(6)
+  revokedAt      DateTime? @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @db.Timestamptz(6)
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId, isActive])
+  @@index([expiresAt])
+  @@map("share_links")
+}
+
+model Artifact {
+  id                 String       @id @default(uuid()) @db.Uuid
+  tripId             String       @db.Uuid
+  itineraryVersionId String       @db.Uuid
+  kind               ArtifactKind
+  storagePath        String       @unique @db.Text
+  contentType        String       @db.VarChar(120)
+  byteSize           Int?
+  integritySha256    String?      @db.Char(64)
+  createdAt          DateTime     @default(now()) @db.Timestamptz(6)
+  expiresAt          DateTime?    @db.Timestamptz(6)
+
+  trip             Trip             @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  itineraryVersion ItineraryVersion @relation(fields: [itineraryVersionId], references: [id], onDelete: Cascade)
+
+  @@index([tripId, kind, createdAt])
+  @@index([itineraryVersionId])
+  @@map("artifacts")
+}
+
+model Job {
+  id                 String     @id @default(uuid()) @db.Uuid
+  tripId             String     @db.Uuid
+  itineraryVersionId String?    @db.Uuid
+  type               JobType
+  status             JobStatus  @default(QUEUED)
+  deduplicationKey   String     @unique @db.VarChar(128)
+  inputHash          String     @db.Char(64)
+  attempts           Int        @default(0)
+  maxAttempts        Int        @default(3)
+  runAfter           DateTime   @default(now()) @db.Timestamptz(6)
+  startedAt          DateTime?  @db.Timestamptz(6)
+  finishedAt         DateTime?  @db.Timestamptz(6)
+  lastErrorCode      String?    @db.VarChar(100)
+  lastErrorMessage   String?    @db.Text
+  metadata           Json       @default("{}")
+  createdAt          DateTime   @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime   @updatedAt @db.Timestamptz(6)
+
+  trip             Trip              @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  itineraryVersion ItineraryVersion? @relation(fields: [itineraryVersionId], references: [id], onDelete: SetNull)
+
+  @@index([status, runAfter])
+  @@index([tripId, type, status])
+  @@map("jobs")
+}
+
+model AuditEvent {
+  id          String       @id @default(uuid()) @db.Uuid
+  tripId      String?      @db.Uuid
+  actorUserId String?      @db.Uuid
+  eventType   String       @db.VarChar(100)
+  entityType  String       @db.VarChar(100)
+  entityId    String?      @db.Uuid
+  requestId   String?      @db.VarChar(128)
+  metadata    Json         @default("{}")
+  occurredAt  DateTime     @default(now()) @db.Timestamptz(6)
+
+  trip       Trip?         @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  actor      UserProfile?  @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([tripId, occurredAt])
+  @@index([actorUserId, occurredAt])
+  @@index([eventType, occurredAt])
+  @@map("audit_events")
+}
+
+model AffiliateClick {
+  id          String       @id @default(uuid()) @db.Uuid
+  tripId      String?      @db.Uuid
+  actorUserId String?      @db.Uuid
+  provider    String       @db.VarChar(100)
+  destination String       @db.Text
+  createdAt   DateTime     @default(now()) @db.Timestamptz(6)
+
+  trip       Trip?         @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  actor      UserProfile?  @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([tripId, createdAt])
+  @@index([provider, createdAt])
+  @@map("affiliate_clicks")
+}
+
+/// Persists successful mutation responses so mobile retries do not duplicate a
+/// lifecycle transition, vote, comment, or itinerary command.
+model CommandReceipt {
+  id             String      @id @default(uuid()) @db.Uuid
+  actorUserId    String      @db.Uuid
+  tripId         String?     @db.Uuid
+  idempotencyKey String      @db.VarChar(255)
+  operation      String      @db.VarChar(100)
+  statusCode     Int
+  response       Json
+  createdAt      DateTime    @default(now()) @db.Timestamptz(6)
+  expiresAt      DateTime?   @db.Timestamptz(6)
+
+  actor UserProfile @relation(fields: [actorUserId], references: [id], onDelete: Cascade)
+  trip  Trip?       @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@unique([actorUserId, idempotencyKey])
+  @@index([tripId, operation, createdAt])
+  @@index([expiresAt])
+  @@map("command_receipts")
+}

@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "active": true,
+  "skill": "cancel",
+  "keyword": "stop",
+  "phase": "planning",
+  "activated_at": "2026-10-29T11:57:45.745Z",
+  "updated_at": "2026-10-29T12:23:40.361Z",
+  "source": "keyword-detector",
+  "session_id": "",
+  "thread_id": "01a1875c-16f0-71e0-8316-8b52baf8a795",
+  "turn_id": "01a1879a-f4cf-71c3-bc0f-474efcf30ad9",
+  "input_lock": {
+    "active": false,
+    "scope": "deep-interview-auto-approval",
+    "acquired_at": "2026-10-29T11:12:09.751Z",
+    "blocked_inputs": [
+      "yes",
+      "y",
+      "proceed",
+      "continue",
+      "ok",
+      "sure",
+      "go ahead",
+      "next i should"
+    ],
+    "message": "Deep interview is active; auto-approval shortcuts are blocked until the interview finishes.",
+    "released_at": "2026-10-29T12:23:40.361Z",
+    "exit_reason": "handoff"
+  },
+  "iteration": 3,
+  "last_turn_at": "2026-10-29T14:05:29.225Z"
+}

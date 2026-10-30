@@ -1,0 +1,35 @@
+{
+  "scope": "roamly-mobile",
+  "iteration": 8,
+  "designDirection": {
+    "visualThesis": "Roamly feels like an editorial travel journal: warm ivory surfaces, deep ocean ink, one electric-blue route accent, and cinematic destination imagery carrying the emotional weight.",
+    "contentPlan": [
+      "Trips: a calm trip workspace anchored by the next shared escape.",
+      "Plan: a single focused destination-to-vibe flow rather than a dashboard.",
+      "Profile: concise travel identity and practical account controls."
+    ],
+    "interactionThesis": [
+      "Native-tab transitions preserve platform familiarity.",
+      "The next-trip hero uses a restrained entrance fade/slide.",
+      "Itinerary rows animate position changes after an owner edit."
+    ]
+  },
+  "visualVerdict": {
+    "score": 93,
+    "threshold": 90,
+    "verdict": "pass",
+    "category_match": true,
+    "differences": [
+      "The web fallback renders tabs at the top rather than as native bottom tabs; this is acceptable for the read-only preview because iOS and Android are the product targets.",
+      "Physical-device checks remain necessary for native tab placement and map modules."
+    ],
+    "suggestions": [
+      "Preserve the route timeline hierarchy and verify native tab placement/map integration on physical iOS and Android development builds before pilot."
+    ],
+    "reasoning": "The Trips and itinerary views both meet the premium travel brief: dominant visual anchor where appropriate, clear route/timeline hierarchy, restrained color use, and readable mobile spacing.",
+    "next_actions": [
+      "Use this shell as the baseline for subsequent native feature screens.",
+      "Capture physical-device evidence once a development build is available."
+    ]
+  }
+}
